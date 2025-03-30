@@ -7,9 +7,9 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "NightChat - Dark Themed Messaging App",
+  title: "NightChat - Messaging App Demo",
   description: "A secure, animated dark-themed messaging application",
-    generator: 'v0.dev'
+    
 }
 
 export default function RootLayout({
