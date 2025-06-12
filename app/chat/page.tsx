@@ -331,12 +331,15 @@ export default function ChatPage() {
                     <AvatarImage src={conv.user.avatar} alt={conv.user.name} />
                     <AvatarFallback>{conv.user.name[0]}</AvatarFallback>
                   </Avatar>
-                  <div className="ml-3 flex-1 overflow-hidden">
+
+                  {/* Added pr-10 for spacing so unread badge doesn't cover text */}
+                  <div className="ml-3 flex-1 overflow-hidden pr-10">
                     <p className="text-sm font-semibold truncate">{conv.user.name}</p>
                     <p className="text-xs text-gray-400 truncate">{conv.lastMessage.text}</p>
                   </div>
+
                   {conv.unread > 0 && (
-                    <span className="text-xs bg-red-600 rounded-full px-2 py-0.5 text-white">
+                    <span className="text-xs bg-red-600 rounded-full px-2 py-0.5 text-white min-w-[20px] text-center">
                       {conv.unread}
                     </span>
                   )}
@@ -345,101 +348,98 @@ export default function ChatPage() {
           </ScrollArea>
         </aside>
 
-        {/* Chat Section */}
+        {/* Chat Area */}
         <section className="flex-1 flex flex-col">
-          {!activeConversation ? (
-            <div className="flex-1 flex items-center justify-center text-gray-400">
-              Select a chat or start a new one.
-            </div>
-          ) : (
-            <>
-              {/* Chat Header */}
-              <header className="flex items-center justify-between border-b border-gray-700 p-4">
+          {/* Chat Header */}
+          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700">
+            {activeConversationData ? (
+              <>
                 <div className="flex items-center space-x-3">
                   <Avatar>
-                    <AvatarImage src={activeConversationData?.user.avatar} alt={activeConversationData?.user.name} />
-                    <AvatarFallback>{activeConversationData?.user.name[0]}</AvatarFallback>
+                    <AvatarImage src={activeConversationData.user.avatar} alt={activeConversationData.user.name} />
+                    <AvatarFallback>{activeConversationData.user.name[0]}</AvatarFallback>
                   </Avatar>
-                  <h2 className="font-semibold">{activeConversationData?.user.name}</h2>
+                  <h2 className="text-lg font-semibold">{activeConversationData.user.name}</h2>
                 </div>
-                <div className="flex space-x-4">
-                  <button
+                <div className="flex items-center space-x-4">
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     onClick={() => setCallType("voice")}
                     aria-label="Start voice call"
-                    className="hover:text-green-400"
-                    title="Voice call"
                   >
-                    <Phone className="w-5 h-5" />
-                  </button>
-                  <button
+                    <Phone />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     onClick={() => setCallType("video")}
                     aria-label="Start video call"
-                    className="hover:text-green-400"
-                    title="Video call"
                   >
-                    <Video className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => alert("User info feature not implemented")}
-                    aria-label="User info"
-                    className="hover:text-gray-400"
-                  >
-                    <Users className="w-5 h-5" />
-                  </button>
+                    <Video />
+                  </Button>
                 </div>
-              </header>
+              </>
+            ) : (
+              <p className="text-gray-400">Select a conversation or start a new chat.</p>
+            )}
+          </div>
 
-              {/* Messages */}
-              <ScrollArea className="flex-1 p-4">
-                <div className="flex flex-col space-y-3">
-                  {messages.map((msg) => {
-                    const isUser = user && msg.senderId === user.id
-                    return (
-                      <div
-                        key={msg.id}
-                        className={`flex ${isUser ? "justify-end" : "justify-start"}`}
-                      >
-                        <div
-                          className={`max-w-xs md:max-w-md p-2 rounded-md ${
-                            isUser ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-100"
-                          }`}
-                        >
-                          <p>{msg.text}</p>
-                          <span className="text-xs text-gray-300 block text-right">
-                            {formatTime(msg.timestamp)}
-                          </span>
-                        </div>
-                      </div>
-                    )
-                  })}
-                  {isTyping && (
-                    <div className="flex justify-start">
-                      <div className="max-w-xs md:max-w-md p-2 rounded-md bg-gray-700 text-gray-100 italic">
-                        Typing...
-                      </div>
+          {/* Messages List */}
+          <ScrollArea className="flex-1 p-4 overflow-y-auto">
+            {messages.length === 0 && <p className="text-gray-400">No messages yet.</p>}
+
+            <div className="space-y-4">
+              {messages.map((msg) => {
+                const isUser = user && msg.senderId === user.id
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex ${
+                      isUser ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`max-w-xs px-4 py-2 rounded-lg ${
+                        isUser ? "bg-purple-600 text-white" : "bg-gray-700 text-gray-100"
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{msg.text}</p>
+                      <span className="text-xs text-gray-300 block mt-1 text-right">
+                        {formatTime(msg.timestamp)}
+                      </span>
                     </div>
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-              </ScrollArea>
+                  </div>
+                )
+              })}
 
-              {/* Message Input */}
-              <form
-                onSubmit={handleSendMessage}
-                className="border-t border-gray-700 p-4 flex items-center space-x-3"
-              >
-                <Input
-                  placeholder="Type a message..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-1"
-                />
-                <Button type="submit" disabled={!newMessage.trim()}>
-                  <Send className="w-5 h-5" />
-                </Button>
-              </form>
-            </>
-          )}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="max-w-xs px-4 py-2 rounded-lg bg-gray-700 text-gray-100 italic text-sm">
+                    Typing...
+                  </div>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+
+          {/* Message Input */}
+          <form onSubmit={handleSendMessage} className="border-t border-gray-700 p-4 flex space-x-2">
+            <Input
+              type="text"
+              placeholder="Type a message..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              className="flex-1"
+              disabled={!activeConversation}
+              aria-label="Message input"
+            />
+            <Button type="submit" disabled={!newMessage.trim() || !activeConversation} aria-label="Send message">
+              <Send className="w-5 h-5" />
+            </Button>
+          </form>
         </section>
       </main>
 
