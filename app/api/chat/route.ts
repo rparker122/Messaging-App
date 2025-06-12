@@ -3,31 +3,40 @@ import { streamText } from "ai"
 
 export async function POST(req: Request) {
   try {
-    // Extract the messages and any additional parameters from the request
-    const { messages, max_tokens } = await req.json()
+    const reqJson = await req.json()
 
-    // Call the language model with enhanced parameters
+    const { messages, max_tokens } = reqJson
+
+    // Validate 'messages' is an array
+    if (!Array.isArray(messages)) {
+      return new Response(
+        JSON.stringify({ error: "'messages' must be an array of message objects" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      )
+    }
+
+    // Set defaults for parameters or use client provided values
+    const maxTokens = typeof max_tokens === "number" && max_tokens > 0 ? max_tokens : 500
+    const temperature = typeof reqJson.temperature === "number" ? reqJson.temperature : 0.7
+    const top_p = typeof reqJson.top_p === "number" ? reqJson.top_p : 0.9
+
+    // Call the OpenAI model with streaming response
     const result = streamText({
       model: openai("gpt-4o"),
       messages,
-      temperature: 0.7, // Add some creativity
-      max_tokens: max_tokens || 500, // Control response length
-      top_p: 0.9, // Nucleus sampling for more diverse responses
+      temperature,
+      max_tokens: maxTokens,
+      top_p,
     })
 
-    // Respond with the stream
+    // Return the streaming response to the client
     return result.toDataStreamResponse()
   } catch (error) {
-    console.error("Error in chat API:", error)
+    console.error("Error in chat API:", error.stack || error)
+
     return new Response(
-      JSON.stringify({
-        error: "There was an error processing your request",
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+      JSON.stringify({ error: "There was an error processing your request" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     )
   }
 }
-
