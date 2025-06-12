@@ -6,19 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  LogOut,
-  Send,
-  Plus,
-  Search,
-  MoreVertical,
-  Phone,
-  Video,
-  Users,
-  MessageSquare,
-  X,
-} from "lucide-react"
+import { LogOut, Send, Plus, Phone, Video, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { generateRandomMessage, getRandomReply, getRandomUser, formatTime } from "@/lib/utils"
 import type { Message, User as UserType, Conversation } from "@/lib/types"
@@ -35,13 +23,11 @@ export default function ChatPage() {
   const router = useRouter()
   const { toast } = useToast()
 
-  // --- NEW STATES ---
-  const [callType, setCallType] = useState<"voice" | "video" | null>(null) // null means no call ongoing
+  const [callType, setCallType] = useState<"voice" | "video" | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [theme, setTheme] = useState<"dark" | "purple" | "blue">("dark") // Removed "light" theme
-  const [hiddenChats, setHiddenChats] = useState<string[]>([]) // ids of hidden chats
+  const [theme, setTheme] = useState<"dark" | "purple" | "blue">("dark")
+  const [hiddenChats, setHiddenChats] = useState<string[]>([])
 
-  // Load user and initial data on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("user")
     if (!storedUser) {
@@ -80,12 +66,14 @@ export default function ChatPage() {
   }, [router])
 
   useEffect(() => {
-    scrollToBottom()
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
   const handleConversationChange = (conversationId: string) => {
     setActiveConversation(conversationId)
-    setConversations((prev) => prev.map((conv) => (conv.id === conversationId ? { ...conv, unread: 0 } : conv)))
+    setConversations((prev) =>
+      prev.map((conv) => (conv.id === conversationId ? { ...conv, unread: 0 } : conv)),
+    )
 
     const conversation = conversations.find((c) => c.id === conversationId)
     if (conversation && user) {
@@ -100,10 +88,6 @@ export default function ChatPage() {
       })
       setMessages(demoMessages)
     }
-  }
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -168,65 +152,61 @@ export default function ChatPage() {
 
   const activeConversationData = conversations.find((c) => c.id === activeConversation)
 
-  // --- Call Modal JSX ---
   const CallModal = () => (
     <div
-      className="fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-50 text-white p-6"
+      className="fixed inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center z-50 text-white p-6"
       onClick={() => setCallType(null)}
     >
       <div
-        className="bg-gray-900 rounded-xl p-8 w-96 max-w-full text-center relative"
-        onClick={(e) => e.stopPropagation()} // prevent modal close on click inside
+        className="bg-gray-800 rounded-2xl p-8 w-96 max-w-full text-center shadow-lg"
+        onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl mb-4">{callType === "voice" ? "Voice Call" : "Video Call"}</h2>
-        <p className="mb-6">
+        <h2 className="text-3xl font-semibold mb-4">{callType === "voice" ? "Voice Call" : "Video Call"}</h2>
+        <p className="mb-6 text-lg">
           {callType === "voice"
             ? `Calling ${activeConversationData?.user.name}...`
             : `Video calling ${activeConversationData?.user.name}...`}
         </p>
 
-        {/* For video call, show a placeholder video box */}
         {callType === "video" && (
-          <div className="bg-black rounded-lg mb-6 w-full h-48 flex items-center justify-center border border-gray-700">
-            <p className="text-gray-500 italic">[Video feed placeholder]</p>
+          <div className="bg-black rounded-xl mb-6 w-full h-48 flex items-center justify-center border border-gray-700 shadow-inner">
+            <p className="text-gray-400 italic select-none">[Video feed placeholder]</p>
           </div>
         )}
 
         <Button
           variant="destructive"
           onClick={() => setCallType(null)}
-          className="px-6 py-2 text-lg flex items-center justify-center gap-2 mx-auto"
+          className="px-8 py-3 text-lg flex items-center justify-center gap-3 mx-auto rounded-full shadow hover:bg-red-700 transition"
         >
-          <X className="w-5 h-5" />
+          <X className="w-6 h-6" />
           End Call
         </Button>
       </div>
     </div>
   )
 
-  // --- Settings Modal JSX ---
   const SettingsModal = () => (
     <div
       className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-6"
       onClick={() => setSettingsOpen(false)}
     >
       <div
-        className="bg-gray-900 rounded-xl p-6 w-96 max-w-full"
+        className="bg-gray-900 rounded-2xl p-8 w-96 max-w-full shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-xl font-semibold mb-4 text-white">Settings</h3>
+        <h3 className="text-2xl font-semibold mb-6 text-white">Settings</h3>
 
-        {/* Hide Chats Section */}
-        <div className="mb-6">
-          <h4 className="text-lg text-white font-medium mb-2">Hide Chats</h4>
+        <div className="mb-8">
+          <h4 className="text-lg text-white font-semibold mb-3">Hide Chats</h4>
           {conversations.length === 0 && <p className="text-gray-400">No chats available.</p>}
-          <div className="max-h-40 overflow-y-auto border border-gray-700 rounded p-2 bg-gray-800">
+          <div className="max-h-48 overflow-y-auto border border-gray-700 rounded-lg p-3 bg-gray-800 shadow-inner">
             {conversations.map((conv) => (
               <label
                 key={conv.id}
-                className="flex items-center justify-between p-1 cursor-pointer select-none"
+                className="flex items-center justify-between p-2 cursor-pointer select-none hover:bg-gray-700 rounded-md transition"
               >
-                <span className="text-white">{conv.user.name}</span>
+                <span className="text-white font-medium">{conv.user.name}</span>
                 <input
                   type="checkbox"
                   checked={hiddenChats.includes(conv.id)}
@@ -237,22 +217,21 @@ export default function ChatPage() {
                         : [...prev, conv.id],
                     )
                   }}
-                  className="cursor-pointer"
+                  className="cursor-pointer w-5 h-5 rounded border-gray-600 bg-gray-700 checked:bg-purple-600 checked:border-transparent transition"
                 />
               </label>
             ))}
           </div>
         </div>
 
-        {/* Theme / Color selection */}
         <div>
-          <h4 className="text-lg text-white font-medium mb-2">Change Theme</h4>
-          <div className="flex space-x-3">
+          <h4 className="text-lg text-white font-semibold mb-3">Change Theme</h4>
+          <div className="flex space-x-4">
             {["dark", "purple", "blue"].map((t) => (
               <button
                 key={t}
-                className={`w-8 h-8 rounded-full border-2 ${
-                  theme === t ? "border-white" : "border-transparent"
+                className={`w-10 h-10 rounded-full border-4 focus:outline-none transition-transform hover:scale-110 ${
+                  theme === t ? "border-white shadow-lg" : "border-transparent"
                 }`}
                 style={{
                   background:
@@ -272,7 +251,7 @@ export default function ChatPage() {
         <Button
           variant="secondary"
           onClick={() => setSettingsOpen(false)}
-          className="mt-6 w-full"
+          className="mt-8 w-full rounded-full shadow hover:bg-gray-700 transition"
         >
           Close
         </Button>
@@ -287,34 +266,47 @@ export default function ChatPage() {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col ${themeClasses[theme]}`}>
+    <div className={`min-h-screen flex flex-col ${themeClasses[theme]} font-sans`}>
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-2 border-b border-gray-700">
-        <h1 className="text-2xl font-bold">ChatApp</h1>
-        <div className="flex items-center space-x-3">
-          <Button onClick={() => setSettingsOpen(true)}>Settings</Button>
-          <Button variant="destructive" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-1" />
-            Logout
+      <header className="flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-800 shadow-sm">
+        <h1 className="text-3xl font-extrabold tracking-tight select-none">Night Chat</h1>
+        <div className="flex items-center space-x-4">
+          <Button
+            onClick={() => setSettingsOpen(true)}
+            className="rounded-full px-4 py-2 shadow-md hover:bg-gray-700 transition"
+          >
+            Settings
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleLogout}
+            className="rounded-full px-4 py-2 flex items-center space-x-2 shadow-md hover:bg-red-700 transition"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>Logout</span>
           </Button>
         </div>
       </header>
 
       <main className="flex flex-1 overflow-hidden">
-        {/* Sidebar / Contacts and Conversations */}
-        <aside className="w-80 border-r border-gray-700 flex flex-col">
-          {/* New Chat Button */}
-          <div className="p-3 border-b border-gray-700 flex justify-between items-center">
-            <h2 className="text-lg font-semibold">Chats</h2>
-            <Button size="sm" variant="outline" onClick={handleNewChat}>
-              <Plus className="w-4 h-4" />
+        {/* Sidebar */}
+        <aside className="w-80 border-r border-gray-700 flex flex-col bg-gray-850">
+          <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+            <h2 className="text-xl font-semibold tracking-wide">Chats</h2>
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-full hover:bg-purple-600 hover:text-white transition"
+              onClick={handleNewChat}
+              aria-label="Start new chat"
+            >
+              <Plus className="w-5 h-5" />
             </Button>
           </div>
 
-          {/* Conversations List */}
-          <ScrollArea className="flex-1 p-2">
+          <ScrollArea className="flex-1 p-3">
             {conversations.length === 0 && (
-              <p className="text-gray-400 p-2">No conversations available.</p>
+              <p className="text-gray-400 p-3 text-center italic">No conversations available.</p>
             )}
 
             {conversations
@@ -323,23 +315,28 @@ export default function ChatPage() {
                 <button
                   key={conv.id}
                   onClick={() => handleConversationChange(conv.id)}
-                  className={`flex items-center w-full p-2 mb-1 rounded-md text-left hover:bg-gray-800 ${
-                    activeConversation === conv.id ? "bg-gray-800" : ""
-                  }`}
+                  className={`flex items-center w-full p-3 mb-2 rounded-lg text-left transition-colors duration-200
+                    ${
+                      activeConversation === conv.id
+                        ? "bg-purple-600 text-white shadow-lg"
+                        : "hover:bg-gray-800 text-gray-300"
+                    }`}
                 >
-                  <Avatar>
+                  <Avatar className="flex-shrink-0">
                     <AvatarImage src={conv.user.avatar} alt={conv.user.name} />
                     <AvatarFallback>{conv.user.name[0]}</AvatarFallback>
                   </Avatar>
 
-                  {/* Added pr-10 for spacing so unread badge doesn't cover text */}
-                  <div className="ml-3 flex-1 overflow-hidden pr-10">
-                    <p className="text-sm font-semibold truncate">{conv.user.name}</p>
-                    <p className="text-xs text-gray-400 truncate">{conv.lastMessage.text}</p>
+                  <div className="ml-4 flex-1 overflow-hidden pr-12">
+                    <p className="text-base font-semibold truncate">{conv.user.name}</p>
+                    <p className="text-sm text-gray-400 truncate mt-0.5">{conv.lastMessage.text}</p>
                   </div>
 
                   {conv.unread > 0 && (
-                    <span className="text-xs bg-red-600 rounded-full px-2 py-0.5 text-white min-w-[20px] text-center">
+                    <span
+                      className="absolute right-4 top-4 bg-red-600 text-white text-xs font-bold rounded-full px-2 py-0.5
+                      min-w-[22px] text-center shadow-md select-none"
+                    >
                       {conv.unread}
                     </span>
                   )}
@@ -348,102 +345,105 @@ export default function ChatPage() {
           </ScrollArea>
         </aside>
 
-        {/* Chat Area */}
-        <section className="flex-1 flex flex-col">
-          {/* Chat Header */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700">
-            {activeConversationData ? (
-              <>
-                <div className="flex items-center space-x-3">
-                  <Avatar>
-                    <AvatarImage src={activeConversationData.user.avatar} alt={activeConversationData.user.name} />
-                    <AvatarFallback>{activeConversationData.user.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <h2 className="text-lg font-semibold">{activeConversationData.user.name}</h2>
-                </div>
-                <div className="flex items-center space-x-4">
+        {/* Chat area */}
+        <section className="flex-1 flex flex-col bg-gray-900">
+          {activeConversationData ? (
+            <>
+              <div className="flex items-center p-4 border-b border-gray-700">
+                <Avatar>
+                  <AvatarImage src={activeConversationData.user.avatar} alt={activeConversationData.user.name} />
+                  <AvatarFallback>{activeConversationData.user.name[0]}</AvatarFallback>
+                </Avatar>
+                <h3 className="ml-4 text-xl font-semibold">{activeConversationData.user.name}</h3>
+
+                <div className="ml-auto flex space-x-3">
                   <Button
+                    variant="outline"
                     size="sm"
-                    variant="ghost"
                     onClick={() => setCallType("voice")}
                     aria-label="Start voice call"
                   >
-                    <Phone />
+                    <Phone className="w-5 h-5" />
                   </Button>
                   <Button
+                    variant="outline"
                     size="sm"
-                    variant="ghost"
                     onClick={() => setCallType("video")}
                     aria-label="Start video call"
                   >
-                    <Video />
+                    <Video className="w-5 h-5" />
                   </Button>
                 </div>
-              </>
-            ) : (
-              <p className="text-gray-400">Select a conversation or start a new chat.</p>
-            )}
-          </div>
+              </div>
 
-          {/* Messages List */}
-          <ScrollArea className="flex-1 p-4 overflow-y-auto">
-            {messages.length === 0 && <p className="text-gray-400">No messages yet.</p>}
-
-            <div className="space-y-4">
-              {messages.map((msg) => {
-                const isUser = user && msg.senderId === user.id
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex ${
-                      isUser ? "justify-end" : "justify-start"
-                    }`}
-                  >
+              <ScrollArea className="flex-1 p-6 space-y-4 overflow-y-auto">
+                {messages.map((msg) => {
+                  const isSender = msg.senderId === user?.id
+                  return (
                     <div
-                      className={`max-w-xs px-4 py-2 rounded-lg ${
-                        isUser ? "bg-purple-600 text-white" : "bg-gray-700 text-gray-100"
-                      }`}
+                      key={msg.id}
+                      className={`flex ${isSender ? "justify-end" : "justify-start"}`}
                     >
-                      <p className="whitespace-pre-wrap">{msg.text}</p>
-                      <span className="text-xs text-gray-300 block mt-1 text-right">
-                        {formatTime(msg.timestamp)}
-                      </span>
+                      <div
+                        className={`max-w-xs px-4 py-2 rounded-xl shadow ${
+                          isSender
+                            ? "bg-purple-600 text-white rounded-br-none"
+                            : "bg-gray-700 text-gray-200 rounded-bl-none"
+                        }`}
+                      >
+                        <p>{msg.text}</p>
+                        <div className="text-xs text-gray-300 mt-1 text-right select-none">
+                          {formatTime(msg.timestamp)}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+
+                {isTyping && (
+                  <div className="flex justify-start">
+                    <div className="max-w-xs px-4 py-2 rounded-xl bg-gray-700 text-gray-200 rounded-bl-none shadow italic select-none">
+                      Typing...
                     </div>
                   </div>
-                )
-              })}
+                )}
 
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="max-w-xs px-4 py-2 rounded-lg bg-gray-700 text-gray-100 italic text-sm">
-                    Typing...
-                  </div>
-                </div>
-              )}
+                <div ref={messagesEndRef} />
+              </ScrollArea>
 
-              <div ref={messagesEndRef} />
+              <form
+                onSubmit={handleSendMessage}
+                className="border-t border-gray-700 px-6 py-3 flex items-center space-x-4 bg-gray-800"
+              >
+                <Input
+                  type="text"
+                  placeholder="Type your message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="flex-1 bg-gray-900 text-white focus:ring-purple-600"
+                  aria-label="Message input"
+                  autoComplete="off"
+                />
+                <Button
+                  type="submit"
+                  className="flex items-center space-x-2 px-6 py-2 rounded-full shadow hover:bg-purple-700 transition"
+                  disabled={!newMessage.trim()}
+                  aria-label="Send message"
+                >
+                  <Send className="w-5 h-5" />
+                  <span>Send</span>
+                </Button>
+              </form>
+            </>
+          ) : (
+            <div className="flex flex-col flex-1 items-center justify-center text-gray-400 italic select-none">
+              <p>No chat selected.</p>
+              <p className="mt-2">Start a new chat by clicking the "+" button.</p>
             </div>
-          </ScrollArea>
-
-          {/* Message Input */}
-          <form onSubmit={handleSendMessage} className="border-t border-gray-700 p-4 flex space-x-2">
-            <Input
-              type="text"
-              placeholder="Type a message..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              className="flex-1"
-              disabled={!activeConversation}
-              aria-label="Message input"
-            />
-            <Button type="submit" disabled={!newMessage.trim() || !activeConversation} aria-label="Send message">
-              <Send className="w-5 h-5" />
-            </Button>
-          </form>
+          )}
         </section>
       </main>
 
-      {/* Modals */}
       {callType && <CallModal />}
       {settingsOpen && <SettingsModal />}
     </div>
