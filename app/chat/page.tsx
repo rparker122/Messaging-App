@@ -323,88 +323,123 @@ export default function ChatPage() {
                     }`}
                 >
                   <Avatar className="flex-shrink-0">
-                    <AvatarImage src={conv.user.avatar} alt={conv.user.name} />
-                    <AvatarFallback>{conv.user.name[0]}</AvatarFallback>
+                    {conv.user.avatar && conv.user.avatar.trim() !== "" ? (
+                      <AvatarImage src={conv.user.avatar} alt={conv.user.name} />
+                    ) : (
+                      <AvatarFallback>{conv.user.name[0]}</AvatarFallback>
+                    )}
                   </Avatar>
-
-                  <div className="ml-4 flex-1 overflow-hidden pr-12">
-                    <p className="text-base font-semibold truncate">{conv.user.name}</p>
-                    <p className="text-sm text-gray-400 truncate mt-0.5">{conv.lastMessage.text}</p>
+                  <div className="ml-3 flex flex-col flex-grow min-w-0">
+                    <span className="font-semibold truncate">{conv.user.name}</span>
+                    <span className="text-sm text-gray-400 truncate">{conv.lastMessage.text}</span>
                   </div>
-
                   {conv.unread > 0 && (
-                    <span
-                      className="absolute right-4 top-4 bg-red-600 text-white text-xs font-bold rounded-full px-2 py-0.5
-                      min-w-[22px] text-center shadow-md select-none"
-                    >
+                    <div className="ml-2 bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold">
                       {conv.unread}
-                    </span>
+                    </div>
                   )}
                 </button>
               ))}
           </ScrollArea>
         </aside>
 
-        {/* Chat area */}
-        <section className="flex-1 flex flex-col bg-gray-900">
+        {/* Chat Area */}
+        <section className="flex flex-col flex-grow relative">
           {activeConversationData ? (
             <>
-              <div className="flex items-center p-4 border-b border-gray-700">
-                <Avatar>
-                  <AvatarImage src={activeConversationData.user.avatar} alt={activeConversationData.user.name} />
-                  <AvatarFallback>{activeConversationData.user.name[0]}</AvatarFallback>
-                </Avatar>
-                <h3 className="ml-4 text-xl font-semibold">{activeConversationData.user.name}</h3>
+              <header className="flex items-center justify-between border-b border-gray-700 p-4 bg-gray-850 shadow-sm">
+                <div className="flex items-center space-x-4">
+                  <Avatar>
+                    {activeConversationData.user.avatar && activeConversationData.user.avatar.trim() !== "" ? (
+                      <AvatarImage src={activeConversationData.user.avatar} alt={activeConversationData.user.name} />
+                    ) : (
+                      <AvatarFallback>{activeConversationData.user.name[0]}</AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div>
+                    <h3 className="text-xl font-semibold">{activeConversationData.user.name}</h3>
+                    <p className="text-sm text-gray-400 select-none">Online</p>
+                  </div>
+                </div>
 
-                <div className="ml-auto flex space-x-3">
+                <div className="flex space-x-3">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    onClick={() => setCallType("voice")}
                     aria-label="Start voice call"
+                    onClick={() => setCallType("voice")}
                   >
                     <Phone className="w-5 h-5" />
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    onClick={() => setCallType("video")}
                     aria-label="Start video call"
+                    onClick={() => setCallType("video")}
                   >
                     <Video className="w-5 h-5" />
                   </Button>
                 </div>
-              </div>
+              </header>
 
-              <ScrollArea className="flex-1 p-6 space-y-4 overflow-y-auto">
+              <ScrollArea className="flex-grow p-4 space-y-3 overflow-y-auto">
+                {messages.length === 0 && <p className="text-center text-gray-400">No messages yet</p>}
+
                 {messages.map((msg) => {
-                  const isSender = msg.senderId === user?.id
+                  const isUserMsg = msg.senderId === user?.id
                   return (
                     <div
                       key={msg.id}
-                      className={`flex ${isSender ? "justify-end" : "justify-start"}`}
+                      className={`flex items-start gap-3 ${isUserMsg ? "justify-end" : "justify-start"}`}
                     >
+                      {!isUserMsg && (
+                        <Avatar className="flex-shrink-0">
+                          {activeConversationData.user.avatar && activeConversationData.user.avatar.trim() !== "" ? (
+                            <AvatarImage src={activeConversationData.user.avatar} alt={activeConversationData.user.name} />
+                          ) : (
+                            <AvatarFallback>{activeConversationData.user.name[0]}</AvatarFallback>
+                          )}
+                        </Avatar>
+                      )}
+
                       <div
-                        className={`max-w-xs px-4 py-2 rounded-xl shadow ${
-                          isSender
+                        className={`max-w-xs rounded-lg p-3 text-sm shadow-sm whitespace-pre-wrap ${
+                          isUserMsg
                             ? "bg-purple-600 text-white rounded-br-none"
-                            : "bg-gray-700 text-gray-200 rounded-bl-none"
+                            : "bg-gray-800 text-gray-300 rounded-bl-none"
                         }`}
                       >
-                        <p>{msg.text}</p>
-                        <div className="text-xs text-gray-300 mt-1 text-right select-none">
+                        {msg.text}
+                        <div className="mt-1 text-xs text-gray-400 text-right select-none">
                           {formatTime(msg.timestamp)}
                         </div>
                       </div>
+
+                      {isUserMsg && (
+                        <Avatar className="flex-shrink-0">
+                          {user && user.avatar && user.avatar.trim() !== "" ? (
+                            <AvatarImage src={user.avatar} alt={user.name} />
+                          ) : (
+                            <AvatarFallback>{user?.name[0]}</AvatarFallback>
+                          )}
+                        </Avatar>
+                      )}
                     </div>
                   )
                 })}
 
                 {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="max-w-xs px-4 py-2 rounded-xl bg-gray-700 text-gray-200 rounded-bl-none shadow italic select-none">
-                      Typing...
-                    </div>
+                  <div className="flex items-center space-x-2 text-gray-400 italic px-3">
+                    <span>Typing...</span>
+                    <svg
+                      className="animate-pulse w-5 h-5 text-gray-400"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle cx="5" cy="12" r="2" />
+                      <circle cx="12" cy="12" r="2" />
+                      <circle cx="19" cy="12" r="2" />
+                    </svg>
                   </div>
                 )}
 
@@ -413,32 +448,35 @@ export default function ChatPage() {
 
               <form
                 onSubmit={handleSendMessage}
-                className="border-t border-gray-700 px-6 py-3 flex items-center space-x-4 bg-gray-800"
+                className="border-t border-gray-700 p-4 bg-gray-850 flex items-center gap-3"
               >
                 <Input
-                  type="text"
-                  placeholder="Type your message..."
+                  placeholder="Type a message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-1 bg-gray-900 text-white focus:ring-purple-600"
+                  autoFocus
                   aria-label="Message input"
-                  autoComplete="off"
+                  className="flex-grow"
                 />
                 <Button
                   type="submit"
-                  className="flex items-center space-x-2 px-6 py-2 rounded-full shadow hover:bg-purple-700 transition"
                   disabled={!newMessage.trim()}
+                  className="rounded-full p-3"
                   aria-label="Send message"
                 >
                   <Send className="w-5 h-5" />
-                  <span>Send</span>
                 </Button>
               </form>
             </>
           ) : (
-            <div className="flex flex-col flex-1 items-center justify-center text-gray-400 italic select-none">
-              <p>No chat selected.</p>
-              <p className="mt-2">Start a new chat by clicking the "+" button.</p>
+            <div className="flex flex-col flex-grow items-center justify-center p-6 text-gray-400 select-none">
+              <p className="text-xl mb-4">No active conversation selected</p>
+              <Button
+                onClick={handleNewChat}
+                className="rounded-full px-6 py-3 shadow hover:bg-purple-600 hover:text-white transition"
+              >
+                Start a new chat
+              </Button>
             </div>
           )}
         </section>
